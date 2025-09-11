@@ -24,8 +24,8 @@ export default function SplashScreen() {
     <div className={styles.splashContainer}>
       <div className={styles.splashContent}>
         <Image
-          src="/logo.jpg"
-          alt="Scada system"
+          src="/YASARTSCADA.jpg"
+          alt="YASART Engineering PLC"
           width={220}
           height={220}
           className={styles.logo}

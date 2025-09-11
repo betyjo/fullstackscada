@@ -1,3 +1,6 @@
-export default function DashboardPage() {
-  return <h1 className="text-2xl font-bold">Welcome to SCADA Dashboard</h1>;
+// src/app/page.tsx
+import SplashScreen from "@/components/SplashScreen";
+
+export default function HomePage() {
+  return <SplashScreen />;
 }

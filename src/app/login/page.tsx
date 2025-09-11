@@ -33,13 +33,7 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white"
         />
-        <input
-          type="text"
-          placeholder="Backend Host"
-          value={host}
-          onChange={(e) => setHost(e.target.value)}
-          className="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white"
-        />
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
