@@ -1,0 +1,38 @@
+{
+    "sqltools.connections": [
+        {
+            "pgOptions": {
+                "statement_timeout": 20,
+                "query_timeout": 20
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "postgreSQL",
+            "database": "postgres",
+            "username": "postgres"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "postgreSQL",
+            "database": "yasart_scada",
+            "username": "postgres"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "postgresql",
+            "database": "scadasystem",
+            "username": "postgres"
+        }
+    ]
+}
