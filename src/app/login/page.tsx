@@ -1,15 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // ⬅️ import router
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+async function apiPost(path: string, data: any) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.detail || `POST ${path} failed: ${res.statusText}`);
+  }
+  return res.json();
+}
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [host, setHost] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter(); // ⬅️ init router
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ username, password, host });
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const data = await apiPost("/login", { username, password });
+      setMessage(`Logged in as ${data.username} (role: ${data.role})`);
+
+      // 🔑 redirect after successful login
+      router.push("/dashboard");
+    } catch (err: any) {
+      setMessage(` ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -18,7 +50,10 @@ export default function LoginPage() {
         onSubmit={handleSubmit}
         className="bg-gray-800 p-6 rounded-2xl shadow-lg w-80 space-y-4"
       >
-        <h1 className="text-2xl font-bold text-center">SCADA Login</h1>
+        <h1 className="text-2xl font-bold text-center text-white">
+          SCADA Login
+        </h1>
+
         <input
           type="text"
           placeholder="Username"
@@ -26,6 +61,7 @@ export default function LoginPage() {
           onChange={(e) => setUsername(e.target.value)}
           className="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white"
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -36,10 +72,15 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
+
+        {message && (
+          <p className="text-center text-sm text-gray-300">{message}</p>
+        )}
       </form>
     </div>
   );

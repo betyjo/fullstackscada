@@ -4,14 +4,29 @@ import SectionCard from "@/components/SectionCard";
 import { Activity, Gauge, AlertTriangle, Clock } from "lucide-react";
 import dynamic from "next/dynamic";
 
-// Optional chart (install Recharts: npm i recharts)
-const ResponsiveContainer = dynamic(() => import("recharts").then(m => m.ResponsiveContainer), { ssr: false });
-const LineChart = dynamic(() => import("recharts").then(m => m.LineChart), { ssr: false });
-const Line = dynamic(() => import("recharts").then(m => m.Line), { ssr: false });
-const XAxis = dynamic(() => import("recharts").then(m => m.XAxis), { ssr: false });
-const YAxis = dynamic(() => import("recharts").then(m => m.YAxis), { ssr: false });
-const Tooltip = dynamic(() => import("recharts").then(m => m.Tooltip), { ssr: false });
-const CartesianGrid = dynamic(() => import("recharts").then(m => m.CartesianGrid), { ssr: false });
+const ResponsiveContainer = dynamic(
+  () => import("recharts").then((m) => m.ResponsiveContainer),
+  { ssr: false }
+);
+const LineChart = dynamic(() => import("recharts").then((m) => m.LineChart), {
+  ssr: false,
+});
+const Line = dynamic(() => import("recharts").then((m) => m.Line), {
+  ssr: false,
+});
+const XAxis = dynamic(() => import("recharts").then((m) => m.XAxis), {
+  ssr: false,
+});
+const YAxis = dynamic(() => import("recharts").then((m) => m.YAxis), {
+  ssr: false,
+});
+const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), {
+  ssr: false,
+});
+const CartesianGrid = dynamic(
+  () => import("recharts").then((m) => m.CartesianGrid),
+  { ssr: false }
+);
 
 const data = [
   { t: "00:00", flow: 32, pressure: 1.8 },
@@ -28,30 +43,67 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-gray-500">Live overview of your SCADA environment</p>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-sm text-gray-500">
+          Live overview of your SCADA environment
+        </p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard icon={<Activity className="size-5" />} label="Flow Rate" value="42 m³/h" sub="+6% vs. yesterday" />
-        <KpiCard icon={<Gauge className="size-5" />} label="Pressure" value="2.1 bar" sub="within threshold" />
-        <KpiCard icon={<Clock className="size-5" />} label="Uptime" value="99.96%" sub="last 24h" />
-        <KpiCard icon={<AlertTriangle className="size-5" />} label="Active Alerts" value="3" sub="1 critical, 2 warning" />
+        <KpiCard
+          icon={<Activity className="size-5" />}
+          label="Flow Rate"
+          value="42 m³/h"
+          sub="+6% vs. yesterday"
+        />
+        <KpiCard
+          icon={<Gauge className="size-5" />}
+          label="Pressure"
+          value="2.1 bar"
+          sub="within threshold"
+        />
+        <KpiCard
+          icon={<Clock className="size-5" />}
+          label="Uptime"
+          value="99.96%"
+          sub="last 24h"
+        />
+        <KpiCard
+          icon={<AlertTriangle className="size-5" />}
+          label="Active Alerts"
+          value="3"
+          sub="1 critical, 2 warning"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <SectionCard title="Flow vs. Pressure (today)">
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+              <LineChart
+                data={data}
+                margin={{ left: 12, right: 12, top: 12, bottom: 12 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="t" />
                 <YAxis yAxisId="left" />
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
-                <Line type="monotone" dataKey="flow" yAxisId="left" dot={false} />
-                <Line type="monotone" dataKey="pressure" yAxisId="right" dot={false} />
+                <Line
+                  type="monotone"
+                  dataKey="flow"
+                  yAxisId="left"
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="pressure"
+                  yAxisId="right"
+                  dot={false}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -100,9 +152,24 @@ export default function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {[
-                  { time: "09:22", src: "Pump A1", evt: "Pressure spike", sev: "warning" },
-                  { time: "11:07", src: "Valve V6", evt: "Disconnected", sev: "critical" },
-                  { time: "14:35", src: "Sensor T-09", evt: "Calibration drift", sev: "info" },
+                  {
+                    time: "09:22",
+                    src: "Pump A1",
+                    evt: "Pressure spike",
+                    sev: "warning",
+                  },
+                  {
+                    time: "11:07",
+                    src: "Valve V6",
+                    evt: "Disconnected",
+                    sev: "critical",
+                  },
+                  {
+                    time: "14:35",
+                    src: "Sensor T-09",
+                    evt: "Calibration drift",
+                    sev: "info",
+                  },
                 ].map((r, i) => (
                   <tr key={i}>
                     <td className="py-2 pr-4">{r.time}</td>
