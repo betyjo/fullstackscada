@@ -15,33 +15,18 @@ faker.seed(RANDOM_SEED);
 
 /** Utility: month start/end in UTC for the last N full months */
 function lastFullMonths(n: number): { start: Date; end: Date; label: string }[] {
-  const now = new Date();                   // e.g., 2025-09-16
+  const now = new Date();
   const months: { start: Date; end: Date; label: string }[] = [];
-  // Start from previous month (full) and go back n-1
   const base = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   for (let i = 1; i <= n; i++) {
     const y = base.getUTCFullYear();
     const m = base.getUTCMonth() - (i - 1);
     const start = new Date(Date.UTC(y, m, 1));
-    const end = new Date(Date.UTC(y, m + 1, 0)); // last day of that month
+    const end = new Date(Date.UTC(y, m + 1, 0));
     const label = start.toISOString().slice(0, 7);
     months.push({ start, end, label });
   }
   return months.reverse(); // oldest -> newest
-}
-
-async function upsertAdmin() {
-  const hash = await bcrypt.hash(PASSWORD, 10);
-  return prisma.profile.upsert({
-    where: { email: "admin@scada.local" },
-    update: { passwordHash: hash, role: Role.admin, fullName: "Admin User" },
-    create: {
-      email: "admin@scada.local",
-      fullName: "Admin User",
-      role: Role.admin,
-      passwordHash: hash,
-    },
-  });
 }
 
 function randomCompanyDomain() {
@@ -86,13 +71,10 @@ function randomLocation() {
 }
 
 async function ensureDevice(ownerId: number, type: DeviceType) {
-  // Generate a deterministic device name per owner/type to minimize duplicates on re-seed
   const name = randomDeviceName(type);
   const location = randomLocation();
-
   const existing = await prisma.device.findFirst({ where: { ownerId, name } });
   if (existing) return existing;
-
   return prisma.device.create({ data: { ownerId, name, type, location } });
 }
 
@@ -103,44 +85,31 @@ function usageAndRateByType(t: DeviceType) {
 }
 
 function statusForMonthIndex(idx: number, total: number): BillingStatus {
-  // Oldest -> 'paid', middle -> 'pending', newest -> mostly 'pending', sometimes 'overdue'
   if (idx === 0) return BillingStatus.paid;
   if (idx === total - 1) return faker.number.int({ min: 1, max: 5 }) === 1 ? BillingStatus.overdue : BillingStatus.pending;
   return BillingStatus.pending;
 }
 
 async function ensureBill(customerId: number, deviceId: number, periodStart: Date, periodEnd: Date, deviceType: DeviceType, status: BillingStatus) {
-  const found = await prisma.billing.findFirst({
-    where: { customerId, deviceId, periodStart, periodEnd },
-  });
+  const found = await prisma.billing.findFirst({ where: { customerId, deviceId, periodStart, periodEnd } });
   if (found) return found;
 
   const { usage, rate } = usageAndRateByType(deviceType);
   const total = Number((usage * rate).toFixed(2));
 
   return prisma.billing.create({
-    data: {
-      customerId,
-      deviceId,
-      periodStart,
-      periodEnd,
-      usage,
-      rate,
-      total,
-      status,
-    },
+    data: { customerId, deviceId, periodStart, periodEnd, usage, rate, total, status },
   });
 }
 
 async function seed() {
-  console.log("Seeding admin…");
-  await upsertAdmin();
+  console.log("Skipping seeded admin (disabled)."); // ⟵ no admin created here
 
   console.log(`Seeding ${CUSTOMERS_COUNT} customers…`);
   const customers = await upsertCustomers(CUSTOMERS_COUNT);
 
   console.log("Creating devices & billing…");
-  const months = lastFullMonths(MONTHS_BACK); // e.g., Jun–Aug (if running in Sep)
+  const months = lastFullMonths(MONTHS_BACK);
 
   for (const cust of customers) {
     const deviceCount = faker.number.int({ min: MIN_DEVICES_PER_CUSTOMER, max: MAX_DEVICES_PER_CUSTOMER });
