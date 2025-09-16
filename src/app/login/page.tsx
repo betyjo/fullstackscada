@@ -1,86 +1,68 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // ⬅️ import router
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-async function apiPost(path: string, data: any) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => null);
-    throw new Error(err?.detail || `POST ${path} failed: ${res.statusText}`);
-  }
-  return res.json();
-}
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const r = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter(); // ⬅️ init router
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setMessage("");
-
     try {
-      const data = await apiPost("/login", { username, password });
-      setMessage(`Logged in as ${data.username} (role: ${data.role})`);
-
-      // 🔑 redirect after successful login
-      router.push("/dashboard");
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+      r.push("/dashboard");
     } catch (err: any) {
-      setMessage(` ${err.message}`);
+      setError(err?.message || "Network error");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-gray-800 p-6 rounded-2xl shadow-lg w-80 space-y-4"
-      >
-        <h1 className="text-2xl font-bold text-center text-white">
-          SCADA Login
-        </h1>
-
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white"
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border border-gray-700 rounded-lg bg-gray-700 text-white"
-        />
-
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <form onSubmit={submit} className="w-full max-w-sm space-y-4 bg-white p-6 rounded-2xl shadow">
+        <h1 className="text-2xl font-semibold">Sign in</h1>
+        <div>
+          <label className="block text-sm mb-1">Email</label>
+          <input
+            className="w-full border rounded px-3 py-2"
+            type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+          />
+        </div>
+        <div>
+          <label className="block text-sm mb-1">Password</label>
+          <input
+            className="w-full border rounded px-3 py-2"
+            type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
+          />
+        </div>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="w-full rounded-2xl px-4 py-2 border shadow"
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
-
-        {message && (
-          <p className="text-center text-sm text-gray-300">{message}</p>
-        )}
+        <p className="text-xs text-gray-500">
+          Don’t have an account? <a href="/register" className="underline">Register</a>
+        </p>
       </form>
     </div>
   );

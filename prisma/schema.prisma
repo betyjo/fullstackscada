@@ -1,0 +1,121 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* ---------- Enums ---------- */
+enum Role {
+  admin
+  operator
+  customer
+}
+
+enum DeviceType {
+  valve
+  pump
+  sensor
+}
+
+enum ReadingStatus {
+  open
+  closed
+  on
+  off
+}
+
+enum BillingStatus {
+  pending
+  paid
+  overdue
+}
+
+enum CommandStatus {
+  sent
+  acknowledged
+  failed
+}
+
+/* ---------- Models ---------- */
+model Profile {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  fullName     String?
+  role         Role      @default(customer)
+  createdAt    DateTime  @default(now())
+
+  devices      Device[]
+  commands     CommandHistory[] @relation("ProfileCommands")
+  billings     Billing[]        @relation("CustomerBilling")
+}
+
+model Device {
+  id         Int       @id @default(autoincrement())
+  name       String
+  type       DeviceType
+  location   String?
+  ownerId    Int?
+  createdAt  DateTime  @default(now())
+
+  owner      Profile?  @relation(fields: [ownerId], references: [id])
+  readings   Reading[]
+  commands   CommandHistory[]
+  billings   Billing[]
+
+  @@index([ownerId])
+}
+
+model Reading {
+  id           BigInt         @id @default(autoincrement())
+  deviceId     Int
+  value        Decimal?
+  unit         String?
+  status       ReadingStatus?
+  usageLiters  Decimal?
+  timestamp    DateTime       @default(now())
+
+  device       Device         @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, timestamp])
+}
+
+model Billing {
+  id          BigInt        @id @default(autoincrement())
+  customerId  Int
+  deviceId    Int
+  periodStart DateTime
+  periodEnd   DateTime
+  usage       Decimal
+  rate        Decimal
+  total       Decimal
+  status      BillingStatus  @default(pending)
+  createdAt   DateTime       @default(now())
+
+  customer    Profile        @relation("CustomerBilling", fields: [customerId], references: [id])
+  device      Device         @relation(fields: [deviceId], references: [id])
+
+  @@index([customerId])
+  @@index([deviceId])
+  @@index([status])
+}
+
+model CommandHistory {
+  id         BigInt        @id @default(autoincrement())
+  deviceId   Int
+  userId     Int
+  command    String
+  params     Json          @default("{}")
+  timestamp  DateTime      @default(now())
+  status     CommandStatus @default(sent)
+
+  device     Device        @relation(fields: [deviceId], references: [id])
+  user       Profile       @relation("ProfileCommands", fields: [userId], references: [id])
+
+  @@index([deviceId, timestamp])
+  @@index([userId])
+}

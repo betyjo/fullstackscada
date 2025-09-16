@@ -39,6 +39,20 @@ const data = [
   { t: "21:00", flow: 35, pressure: 1.9 },
 ];
 
+//logout button
+export function LogoutButton() {
+  return (
+    <button
+      className="rounded-xl border px-3 py-1"
+      onClick={async () => {
+        await fetch("/api/auth/logout", { method: "POST" });
+        location.href = "/login";
+      }}
+    >
+      Log out
+    </button>
+  );
+}
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
